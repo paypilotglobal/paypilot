@@ -1,0 +1,6 @@
+paypaiintl/
+├── index.html
+├── styles.css
+├── script.js
+├── setup.sh
+└── README.md
