@@ -48,7 +48,10 @@
                             <label for="signupPassword">Password</label>
                             <input type="password" id="signupPassword" required minlength="6">
                         </div>
-                        <button type="submit" class="submit-btn">Sign Up</button>
+                        <button type="submit" class="submit-btn">
+                            <span class="btn-text">Sign Up</span>
+                            <div class="spinner hidden"></div>
+                        </button>
                     </form>
 
                     <!-- Login Form -->
@@ -62,17 +65,33 @@
                             <label for="loginPassword">Password</label>
                             <input type="password" id="loginPassword" required>
                         </div>
-                        <button type="submit" class="submit-btn">Login</button>
+                        <button type="submit" class="submit-btn">
+                            <span class="btn-text">Login</span>
+                            <div class="spinner hidden"></div>
+                        </button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- Success Message -->
-        <div id="successMessage" class="success-message">
-            <p>Thank you for signing up! We'll contact you soon.</p>
+        <!-- Success Modal -->
+        <div id="successModal" class="modal">
+            <div class="modal-content success-modal">
+                <div class="success-animation">
+                    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                        <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                        <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                </div>
+                <h3>Success!</h3>
+                <p id="successMessage">Your account has been created successfully!</p>
+                <button class="cta-button" id="successCloseBtn">Continue</button>
+            </div>
         </div>
     </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <script src="script.js"></script>
 </body>

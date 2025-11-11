@@ -71,7 +71,10 @@ cat > index.html << 'EOF'
                             <label for="signupPassword">Password</label>
                             <input type="password" id="signupPassword" required minlength="6">
                         </div>
-                        <button type="submit" class="submit-btn">Sign Up</button>
+                        <button type="submit" class="submit-btn">
+                            <span class="btn-text">Sign Up</span>
+                            <div class="spinner hidden"></div>
+                        </button>
                     </form>
 
                     <!-- Login Form -->
@@ -85,17 +88,33 @@ cat > index.html << 'EOF'
                             <label for="loginPassword">Password</label>
                             <input type="password" id="loginPassword" required>
                         </div>
-                        <button type="submit" class="submit-btn">Login</button>
+                        <button type="submit" class="submit-btn">
+                            <span class="btn-text">Login</span>
+                            <div class="spinner hidden"></div>
+                        </button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- Success Message -->
-        <div id="successMessage" class="success-message">
-            <p>Thank you for signing up! We'll contact you soon.</p>
+        <!-- Success Modal -->
+        <div id="successModal" class="modal">
+            <div class="modal-content success-modal">
+                <div class="success-animation">
+                    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                        <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                        <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                </div>
+                <h3>Success!</h3>
+                <p id="successMessage">Your account has been created successfully!</p>
+                <button class="cta-button" id="successCloseBtn">Continue</button>
+            </div>
         </div>
     </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <script src="script.js"></script>
 </body>
@@ -136,23 +155,27 @@ header {
     color: white;
     margin-bottom: 0.5rem;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    animation: fadeInUp 1s ease;
 }
 
 .tagline {
     font-size: 1.2rem;
     color: rgba(255,255,255,0.9);
+    animation: fadeInUp 1s ease 0.2s both;
 }
 
 .coming-soon h2 {
     font-size: 2.5rem;
     color: white;
     margin-bottom: 1rem;
+    animation: fadeInUp 1s ease 0.4s both;
 }
 
 .coming-soon p {
     font-size: 1.2rem;
     color: rgba(255,255,255,0.9);
     margin-bottom: 2rem;
+    animation: fadeInUp 1s ease 0.6s both;
 }
 
 .cta-button {
@@ -165,6 +188,7 @@ header {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+    animation: fadeInUp 1s ease 0.8s both;
 }
 
 .cta-button:hover {
@@ -208,6 +232,17 @@ header {
     }
 }
 
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .close {
     position: absolute;
     right: 1rem;
@@ -215,6 +250,7 @@ header {
     font-size: 1.5rem;
     cursor: pointer;
     color: #999;
+    transition: color 0.3s ease;
 }
 
 .close:hover {
@@ -236,6 +272,7 @@ header {
     cursor: pointer;
     font-size: 1rem;
     border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
 }
 
 .tab-button.active {
@@ -250,6 +287,12 @@ header {
 
 .auth-form.active {
     display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .form-group {
@@ -270,12 +313,13 @@ header {
     border: 2px solid #ddd;
     border-radius: 8px;
     font-size: 1rem;
-    transition: border-color 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .form-group input:focus {
     outline: none;
     border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .submit-btn {
@@ -287,33 +331,191 @@ header {
     border-radius: 8px;
     font-size: 1rem;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
-.submit-btn:hover {
+.submit-btn:hover:not(:disabled) {
     background: #5a6fd8;
+    transform: translateY(-1px);
 }
 
-/* Success Message */
-.success-message {
+.submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Spinner */
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -10px;
+    margin-left: -10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.hidden {
     display: none;
-    background: #4CAF50;
-    color: white;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-top: 1rem;
-    animation: slideIn 0.3s ease;
 }
 
-@keyframes slideIn {
+.btn-text {
+    transition: opacity 0.3s ease;
+}
+
+.submit-btn.loading .btn-text {
+    opacity: 0;
+}
+
+.submit-btn.loading .spinner {
+    display: block;
+}
+
+/* Success Modal */
+.success-modal {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.success-animation {
+    margin-bottom: 1.5rem;
+}
+
+.checkmark {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+}
+
+.checkmark__circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 2;
+    stroke-miterlimit: 10;
+    stroke: #4CAF50;
+    fill: none;
+    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark__check {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+@keyframes stroke {
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+.success-modal h3 {
+    color: #4CAF50;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.success-modal p {
+    color: #666;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+/* Toast Styles */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+    max-width: 400px;
+}
+
+.toast {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    animation: toastSlideIn 0.3s ease;
+    border-left: 4px solid #4CAF50;
+}
+
+.toast.error {
+    border-left-color: #f44336;
+}
+
+.toast.warning {
+    border-left-color: #ff9800;
+}
+
+.toast.info {
+    border-left-color: #2196F3;
+}
+
+.toast-icon {
+    margin-right: 0.75rem;
+    font-size: 1.2rem;
+}
+
+.toast-message {
+    flex: 1;
+    color: #333;
+    font-weight: 500;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #999;
+    margin-left: 1rem;
+    transition: color 0.3s ease;
+}
+
+.toast-close:hover {
+    color: #333;
+}
+
+@keyframes toastSlideIn {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateX(100%);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(0);
     }
+}
+
+@keyframes toastSlideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+.toast.hiding {
+    animation: toastSlideOut 0.3s ease forwards;
 }
 
 /* Responsive Design */
@@ -329,6 +531,13 @@ header {
     .modal-content {
         margin: 10% auto;
         width: 95%;
+        padding: 1.5rem;
+    }
+    
+    .toast-container {
+        left: 20px;
+        right: 20px;
+        max-width: none;
     }
 }
 EOF
@@ -344,12 +553,18 @@ const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 // DOM Elements
 const getStartedBtn = document.getElementById('getStartedBtn');
 const authModal = document.getElementById('authModal');
+const successModal = document.getElementById('successModal');
 const closeModal = document.querySelector('.close');
+const successCloseBtn = document.getElementById('successCloseBtn');
 const tabButtons = document.querySelectorAll('.tab-button');
 const authForms = document.querySelectorAll('.auth-form');
 const signupForm = document.getElementById('signupForm');
 const loginForm = document.getElementById('loginForm');
 const successMessage = document.getElementById('successMessage');
+const toastContainer = document.getElementById('toastContainer');
+
+// Track active form submissions to prevent duplicates
+let isSubmitting = false;
 
 // Modal functionality
 getStartedBtn.addEventListener('click', () => {
@@ -358,11 +573,20 @@ getStartedBtn.addEventListener('click', () => {
 
 closeModal.addEventListener('click', () => {
     authModal.style.display = 'none';
+    resetForms();
+});
+
+successCloseBtn.addEventListener('click', () => {
+    successModal.style.display = 'none';
 });
 
 window.addEventListener('click', (event) => {
     if (event.target === authModal) {
         authModal.style.display = 'none';
+        resetForms();
+    }
+    if (event.target === successModal) {
+        successModal.style.display = 'none';
     }
 });
 
@@ -389,9 +613,29 @@ tabButtons.forEach(button => {
 signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    if (isSubmitting) return;
+    
     const name = document.getElementById('signupName').value;
     const email = document.getElementById('signupEmail').value;
     const password = document.getElementById('signupPassword').value;
+    const submitBtn = signupForm.querySelector('.submit-btn');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const spinner = submitBtn.querySelector('.spinner');
+    
+    // Validate form
+    if (!name || !email || !password) {
+        showToast('Please fill in all fields', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showToast('Password must be at least 6 characters', 'error');
+        return;
+    }
+    
+    // Show loading state
+    setButtonLoading(submitBtn, true);
+    isSubmitting = true;
     
     try {
         const { data, error } = await supabase.auth.signUp({
@@ -400,19 +644,27 @@ signupForm.addEventListener('submit', async (e) => {
             options: {
                 data: {
                     full_name: name
-                }
+                },
+                // Disable email confirmation
+                emailRedirectTo: window.location.origin
             }
         });
         
         if (error) throw error;
         
-        // Show success message
-        showSuccessMessage();
-        authModal.style.display = 'none';
+        // Show success modal
+        showSuccessModal('Your account has been created successfully! Welcome to PayPaiIntl!');
+        
+        // Reset form
         signupForm.reset();
+        authModal.style.display = 'none';
         
     } catch (error) {
-        alert('Error signing up: ' + error.message);
+        console.error('Sign up error:', error);
+        showToast('Error signing up: ' + error.message, 'error');
+    } finally {
+        setButtonLoading(submitBtn, false);
+        isSubmitting = false;
     }
 });
 
@@ -420,8 +672,21 @@ signupForm.addEventListener('submit', async (e) => {
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    if (isSubmitting) return;
+    
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
+    const submitBtn = loginForm.querySelector('.submit-btn');
+    
+    // Validate form
+    if (!email || !password) {
+        showToast('Please fill in all fields', 'error');
+        return;
+    }
+    
+    // Show loading state
+    setButtonLoading(submitBtn, true);
+    isSubmitting = true;
     
     try {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -432,28 +697,96 @@ loginForm.addEventListener('submit', async (e) => {
         if (error) throw error;
         
         // Show success message
-        showSuccessMessage('Login successful! Welcome back.');
-        authModal.style.display = 'none';
+        showSuccessModal('Login successful! Welcome back to PayPaiIntl!');
+        
+        // Reset form
         loginForm.reset();
+        authModal.style.display = 'none';
         
     } catch (error) {
-        alert('Error logging in: ' + error.message);
+        console.error('Login error:', error);
+        showToast('Error logging in: ' + error.message, 'error');
+    } finally {
+        setButtonLoading(submitBtn, false);
+        isSubmitting = false;
     }
 });
 
-function showSuccessMessage(message = 'Thank you for signing up! We\'ll contact you soon.') {
-    successMessage.querySelector('p').textContent = message;
-    successMessage.style.display = 'block';
+// Utility Functions
+function setButtonLoading(button, loading) {
+    if (loading) {
+        button.disabled = true;
+        button.classList.add('loading');
+    } else {
+        button.disabled = false;
+        button.classList.remove('loading');
+    }
+}
+
+function showSuccessModal(message) {
+    successMessage.textContent = message;
+    successModal.style.display = 'block';
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <div class="toast-icon">${getToastIcon(type)}</div>
+        <div class="toast-message">${message}</div>
+        <button class="toast-close">&times;</button>
+    `;
     
+    toastContainer.appendChild(toast);
+    
+    // Add click event to close button
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+        removeToast(toast);
+    });
+    
+    // Auto remove after 5 seconds
     setTimeout(() => {
-        successMessage.style.display = 'none';
+        removeToast(toast);
     }, 5000);
+}
+
+function getToastIcon(type) {
+    const icons = {
+        success: '✓',
+        error: '✕',
+        warning: '⚠',
+        info: 'ℹ'
+    };
+    return icons[type] || 'ℹ';
+}
+
+function removeToast(toast) {
+    toast.classList.add('hiding');
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 300);
+}
+
+function resetForms() {
+    signupForm.reset();
+    loginForm.reset();
+    
+    // Reset loading states
+    const submitButtons = document.querySelectorAll('.submit-btn');
+    submitButtons.forEach(button => {
+        setButtonLoading(button, false);
+    });
+    
+    isSubmitting = false;
 }
 
 // Check if user is already logged in (optional)
 supabase.auth.getSession().then(({ data: { session } }) => {
     if (session) {
         console.log('User is logged in:', session.user.email);
+        showToast(`Welcome back, ${session.user.user_metadata?.full_name || session.user.email}!`, 'success');
     }
 });
 
@@ -474,8 +807,10 @@ cat > README.md << 'EOF'
 A beautiful coming soon page with authentication for PayPaiIntl.
 
 ## Features
-- Modern, responsive design
-- Sign up and login functionality
+- Modern, responsive design with animations
+- Sign up and login functionality with spinners
+- Success modal with animated checkmark
+- Toast notifications for user feedback
 - Supabase integration for user management
 - Mobile-friendly interface
 

@@ -8,12 +8,18 @@ const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 // DOM Elements
 const getStartedBtn = document.getElementById('getStartedBtn');
 const authModal = document.getElementById('authModal');
+const successModal = document.getElementById('successModal');
 const closeModal = document.querySelector('.close');
+const successCloseBtn = document.getElementById('successCloseBtn');
 const tabButtons = document.querySelectorAll('.tab-button');
 const authForms = document.querySelectorAll('.auth-form');
 const signupForm = document.getElementById('signupForm');
 const loginForm = document.getElementById('loginForm');
 const successMessage = document.getElementById('successMessage');
+const toastContainer = document.getElementById('toastContainer');
+
+// Track active form submissions to prevent duplicates
+let isSubmitting = false;
 
 // Modal functionality
 getStartedBtn.addEventListener('click', () => {
@@ -22,11 +28,20 @@ getStartedBtn.addEventListener('click', () => {
 
 closeModal.addEventListener('click', () => {
     authModal.style.display = 'none';
+    resetForms();
+});
+
+successCloseBtn.addEventListener('click', () => {
+    successModal.style.display = 'none';
 });
 
 window.addEventListener('click', (event) => {
     if (event.target === authModal) {
         authModal.style.display = 'none';
+        resetForms();
+    }
+    if (event.target === successModal) {
+        successModal.style.display = 'none';
     }
 });
 
@@ -53,9 +68,29 @@ tabButtons.forEach(button => {
 signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    if (isSubmitting) return;
+    
     const name = document.getElementById('signupName').value;
     const email = document.getElementById('signupEmail').value;
     const password = document.getElementById('signupPassword').value;
+    const submitBtn = signupForm.querySelector('.submit-btn');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const spinner = submitBtn.querySelector('.spinner');
+    
+    // Validate form
+    if (!name || !email || !password) {
+        showToast('Please fill in all fields', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showToast('Password must be at least 6 characters', 'error');
+        return;
+    }
+    
+    // Show loading state
+    setButtonLoading(submitBtn, true);
+    isSubmitting = true;
     
     try {
         const { data, error } = await supabase.auth.signUp({
@@ -64,19 +99,27 @@ signupForm.addEventListener('submit', async (e) => {
             options: {
                 data: {
                     full_name: name
-                }
+                },
+                // Disable email confirmation
+                emailRedirectTo: window.location.origin
             }
         });
         
         if (error) throw error;
         
-        // Show success message
-        showSuccessMessage();
-        authModal.style.display = 'none';
+        // Show success modal
+        showSuccessModal('Your account has been created successfully! Welcome to PayPaiIntl!');
+        
+        // Reset form
         signupForm.reset();
+        authModal.style.display = 'none';
         
     } catch (error) {
-        alert('Error signing up: ' + error.message);
+        console.error('Sign up error:', error);
+        showToast('Error signing up: ' + error.message, 'error');
+    } finally {
+        setButtonLoading(submitBtn, false);
+        isSubmitting = false;
     }
 });
 
@@ -84,8 +127,21 @@ signupForm.addEventListener('submit', async (e) => {
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    if (isSubmitting) return;
+    
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
+    const submitBtn = loginForm.querySelector('.submit-btn');
+    
+    // Validate form
+    if (!email || !password) {
+        showToast('Please fill in all fields', 'error');
+        return;
+    }
+    
+    // Show loading state
+    setButtonLoading(submitBtn, true);
+    isSubmitting = true;
     
     try {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -96,28 +152,96 @@ loginForm.addEventListener('submit', async (e) => {
         if (error) throw error;
         
         // Show success message
-        showSuccessMessage('Login successful! Welcome back.');
-        authModal.style.display = 'none';
+        showSuccessModal('Login successful! Welcome back to PayPaiIntl!');
+        
+        // Reset form
         loginForm.reset();
+        authModal.style.display = 'none';
         
     } catch (error) {
-        alert('Error logging in: ' + error.message);
+        console.error('Login error:', error);
+        showToast('Error logging in: ' + error.message, 'error');
+    } finally {
+        setButtonLoading(submitBtn, false);
+        isSubmitting = false;
     }
 });
 
-function showSuccessMessage(message = 'Thank you for signing up! We\'ll contact you soon.') {
-    successMessage.querySelector('p').textContent = message;
-    successMessage.style.display = 'block';
+// Utility Functions
+function setButtonLoading(button, loading) {
+    if (loading) {
+        button.disabled = true;
+        button.classList.add('loading');
+    } else {
+        button.disabled = false;
+        button.classList.remove('loading');
+    }
+}
+
+function showSuccessModal(message) {
+    successMessage.textContent = message;
+    successModal.style.display = 'block';
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <div class="toast-icon">${getToastIcon(type)}</div>
+        <div class="toast-message">${message}</div>
+        <button class="toast-close">&times;</button>
+    `;
     
+    toastContainer.appendChild(toast);
+    
+    // Add click event to close button
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+        removeToast(toast);
+    });
+    
+    // Auto remove after 5 seconds
     setTimeout(() => {
-        successMessage.style.display = 'none';
+        removeToast(toast);
     }, 5000);
+}
+
+function getToastIcon(type) {
+    const icons = {
+        success: '✓',
+        error: '✕',
+        warning: '⚠',
+        info: 'ℹ'
+    };
+    return icons[type] || 'ℹ';
+}
+
+function removeToast(toast) {
+    toast.classList.add('hiding');
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 300);
+}
+
+function resetForms() {
+    signupForm.reset();
+    loginForm.reset();
+    
+    // Reset loading states
+    const submitButtons = document.querySelectorAll('.submit-btn');
+    submitButtons.forEach(button => {
+        setButtonLoading(button, false);
+    });
+    
+    isSubmitting = false;
 }
 
 // Check if user is already logged in (optional)
 supabase.auth.getSession().then(({ data: { session } }) => {
     if (session) {
         console.log('User is logged in:', session.user.email);
+        showToast(`Welcome back, ${session.user.user_metadata?.full_name || session.user.email}!`, 'success');
     }
 });
 

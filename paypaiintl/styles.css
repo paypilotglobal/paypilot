@@ -31,23 +31,27 @@ header {
     color: white;
     margin-bottom: 0.5rem;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    animation: fadeInUp 1s ease;
 }
 
 .tagline {
     font-size: 1.2rem;
     color: rgba(255,255,255,0.9);
+    animation: fadeInUp 1s ease 0.2s both;
 }
 
 .coming-soon h2 {
     font-size: 2.5rem;
     color: white;
     margin-bottom: 1rem;
+    animation: fadeInUp 1s ease 0.4s both;
 }
 
 .coming-soon p {
     font-size: 1.2rem;
     color: rgba(255,255,255,0.9);
     margin-bottom: 2rem;
+    animation: fadeInUp 1s ease 0.6s both;
 }
 
 .cta-button {
@@ -60,6 +64,7 @@ header {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+    animation: fadeInUp 1s ease 0.8s both;
 }
 
 .cta-button:hover {
@@ -103,6 +108,17 @@ header {
     }
 }
 
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .close {
     position: absolute;
     right: 1rem;
@@ -110,6 +126,7 @@ header {
     font-size: 1.5rem;
     cursor: pointer;
     color: #999;
+    transition: color 0.3s ease;
 }
 
 .close:hover {
@@ -131,6 +148,7 @@ header {
     cursor: pointer;
     font-size: 1rem;
     border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
 }
 
 .tab-button.active {
@@ -145,6 +163,12 @@ header {
 
 .auth-form.active {
     display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .form-group {
@@ -165,12 +189,13 @@ header {
     border: 2px solid #ddd;
     border-radius: 8px;
     font-size: 1rem;
-    transition: border-color 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .form-group input:focus {
     outline: none;
     border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .submit-btn {
@@ -182,33 +207,191 @@ header {
     border-radius: 8px;
     font-size: 1rem;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
-.submit-btn:hover {
+.submit-btn:hover:not(:disabled) {
     background: #5a6fd8;
+    transform: translateY(-1px);
 }
 
-/* Success Message */
-.success-message {
+.submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Spinner */
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -10px;
+    margin-left: -10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.hidden {
     display: none;
-    background: #4CAF50;
-    color: white;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-top: 1rem;
-    animation: slideIn 0.3s ease;
 }
 
-@keyframes slideIn {
+.btn-text {
+    transition: opacity 0.3s ease;
+}
+
+.submit-btn.loading .btn-text {
+    opacity: 0;
+}
+
+.submit-btn.loading .spinner {
+    display: block;
+}
+
+/* Success Modal */
+.success-modal {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.success-animation {
+    margin-bottom: 1.5rem;
+}
+
+.checkmark {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+}
+
+.checkmark__circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 2;
+    stroke-miterlimit: 10;
+    stroke: #4CAF50;
+    fill: none;
+    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark__check {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+@keyframes stroke {
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+.success-modal h3 {
+    color: #4CAF50;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.success-modal p {
+    color: #666;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+/* Toast Styles */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+    max-width: 400px;
+}
+
+.toast {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    animation: toastSlideIn 0.3s ease;
+    border-left: 4px solid #4CAF50;
+}
+
+.toast.error {
+    border-left-color: #f44336;
+}
+
+.toast.warning {
+    border-left-color: #ff9800;
+}
+
+.toast.info {
+    border-left-color: #2196F3;
+}
+
+.toast-icon {
+    margin-right: 0.75rem;
+    font-size: 1.2rem;
+}
+
+.toast-message {
+    flex: 1;
+    color: #333;
+    font-weight: 500;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #999;
+    margin-left: 1rem;
+    transition: color 0.3s ease;
+}
+
+.toast-close:hover {
+    color: #333;
+}
+
+@keyframes toastSlideIn {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateX(100%);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(0);
     }
+}
+
+@keyframes toastSlideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+.toast.hiding {
+    animation: toastSlideOut 0.3s ease forwards;
 }
 
 /* Responsive Design */
@@ -224,5 +407,12 @@ header {
     .modal-content {
         margin: 10% auto;
         width: 95%;
+        padding: 1.5rem;
+    }
+    
+    .toast-container {
+        left: 20px;
+        right: 20px;
+        max-width: none;
     }
 }
